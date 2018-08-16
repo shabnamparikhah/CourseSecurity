@@ -2,13 +2,12 @@ package com.example.demo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
@@ -21,6 +20,13 @@ public class HomeController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    CourseRepository courseRepository;
+
+    @Autowired
+    StudentRepository studentRepository;
+
 
     @RequestMapping(value = "/register" , method = RequestMethod.GET)
     public String showRegisterationPage(Model model)
@@ -63,5 +69,68 @@ public class HomeController {
         String username = principal.getName();
         return "secure";
     }
+
+     @RequestMapping(value = "/addcourse" , method = RequestMethod.GET)
+    public String addCourse(Model model)
+
+     {
+         model.addAttribute("course" , new Course());
+         return "addcourse";
+    }
+    @RequestMapping(value = "/addcourse" , method = RequestMethod.POST)
+      public String processForm(@Valid Course cource , BindingResult result)
+    {
+        if(result.hasErrors())
+        {
+            return "list";
+        }
+        courseRepository.save(cource);
+        return "list";
+    }
+
+    @RequestMapping(value = "/addstudent" , method = RequestMethod.GET)
+    public String addstudent(Model model)
+
+    {
+        model.addAttribute("student" , new Student());
+        return "addstudent";
+    }
+    @RequestMapping(value = "/addstudent" , method = RequestMethod.POST)
+    public String processFormstudent(@Valid Student student , BindingResult result)
+    {
+        if(result.hasErrors())
+        {
+            return "list";
+        }
+        studentRepository.save(student);
+        return "studentlist";
+    }
+
+    @RequestMapping("/list")
+     public String listCourses(@ModelAttribute Course course, Model model)
+    {
+        model.addAttribute("course",courseRepository.findAll());
+        return "list";
+    }
+    @RequestMapping("/detail/{id}")
+    public String showCourse(@PathVariable("id") long id , Model model)
+    {
+        model.addAttribute("course",courseRepository.findById(id).get());
+        return  "show";
+    }
+    @RequestMapping("/update/{id}")
+    public String updateCourse(@PathVariable("id") long id , Model model)
+    {
+        model.addAttribute("course",courseRepository.findById(id).get());
+        return  "addcourse";
+    }
+    @RequestMapping("/delete/{id}")
+    public String delCourse(@PathVariable("id") long id )
+    {
+        courseRepository.deleteById(id);
+        return "list";
+    }
+
+
 
 }
